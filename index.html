@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>2D Color Grid</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="colorCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('colorCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const cellSize = 20; // Each cell will be 20x20 pixels
+
+    const socket = new WebSocket('ws://localhost:8080'); // Adjust to your server address
+
+    socket.onmessage = function(event) {
+      try {
+        const colorGrid = JSON.parse(event.data);
+        if (!Array.isArray(colorGrid) || !Array.isArray(colorGrid[0])) return;
+
+        const rows = colorGrid.length;
+        const cols = colorGrid[0].length;
+
+        canvas.width = cols * cellSize;
+        canvas.height = rows * cellSize;
+
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            ctx.fillStyle = colorGrid[y][x];
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+          }
+        }
+      } catch (e) {
+        console.error("Invalid data received:", event.data);
+      }
+    };
+
+    socket.onopen = () => console.log('WebSocket connection opened');
+    socket.onerror = (error) => console.error('WebSocket error:', error);
+    socket.onclose = () => console.log('WebSocket connection closed');
+  </script>
+</body>
+</html>
